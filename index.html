@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced CryptoJS Decryptor - Warp 10</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #2196F3;
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: var(--background-color); 
+            color: var(--text-color);
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            align-items: flex-start;
+        }
+
+        .container { 
+            background: var(--card-color); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: var(--shadow); 
+            flex: 2;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .sidebar {
+            background: var(--card-color);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            flex: 1;
+            max-width: 350px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        h1 { 
+            text-align: center; 
+            font-size: 2rem; 
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-weight: 600;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group { 
+            margin-bottom: 1.2rem; 
+            position: relative;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 0.5rem; 
+            color: var(--text-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        textarea, input[type="text"], input[type="password"], select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid var(--border-color); 
+            border-radius: 8px; 
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--card-color);
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+            transform: translateY(-1px);
+        }
+
+        textarea { 
+            height: 120px; 
+            resize: vertical; 
+            font-family: 'Consolas', monospace;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        button { 
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px; 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover { 
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: var(--secondary-color);
+        }
+
+        button.secondary:hover {
+            background: #1a88e0;
+        }
+
+        button.warning {
+            background: var(--warning-color);
+        }
+
+        button.warning:hover {
+            background: #e68900;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 1.2rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        pre { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border: 2px solid var(--border-color); 
+            border-radius: 8px; 
+            max-height: 200px; 
+            overflow: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status.success {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+            display: flex;
+        }
+
+        .status.error {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
+            display: flex;
+        }
+
+        .status.warning {
+            background-color: rgba(255, 152, 0, 0.15);
+            color: var(--warning-color);
+            border-left: 4px solid var(--warning-color);
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Algoritmus selector */
+        .algorithm-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .algorithm-group select {
+            min-width: 120px;
+        }
+
+        /* Historie */
+        .history-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .history-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .history-preview {
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Statistiky */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progress-shimmer 1.5s infinite;
+        }
+
+        @keyframes progress-shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-color);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        /* Dark mode */
+        .dark-mode {
+            --primary-color: #66bb6a;
+            --primary-hover: #81c784;
+            --secondary-color: #42a5f5;
+            --background-color: #121212;
+            --card-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: #333333;
+        }
+
+        .dark-mode pre {
+            background: #252525;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .history-item,
+        .dark-mode .stat-card {
+            background: #252525;
+        }
+
+        /* Responzivní design */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                max-width: 100%;
+                position: static;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container, .sidebar {
+                padding: 15px;
+                margin: 5px 0;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: auto;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Drag and drop */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--primary-color);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .drop-zone-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <button id="themeToggle" class="theme-toggle" title="Přepnout tmavý/světlý režim">🌓</button>
+    
+    <div class="main-container">
+        <div class="container">
+            <h1>🔓 Advanced CryptoJS Decryptor</h1>
+            
+            <!-- Drop zone pro soubory -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-text">
+                    📁 Přetáhněte sem soubor s šifrovanými daty<br>
+                    <small>Podporované formáty: .txt, .json, .enc</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cipherInput">
+                    🔒 Zašifrovaný text:
+                    <span class="tooltip" data-tooltip="Vložte Base64 zakódovaný šifrovaný text">ℹ️</span>
+                </label>
+                <textarea id="cipherInput" placeholder="Vlož base64 text se salt prefixem nebo obyčejný šifrovaný text"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="keyInput">🔑 Master heslo / klíč:</label>
+                <div class="input-with-icon">
+                    <input type="password" id="keyInput" placeholder="Zadejte klíč">
+                    <span class="input-icon" id="togglePassword">👁️</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>⚙️ Algoritmus a nastavení:</label>
+                <div class="algorithm-group">
+                    <select id="algorithmSelect">
+                        <option value="AES">AES (Default)</option>
+                        <option value="DES">DES</option>
+                        <option value="TripleDES">Triple DES</option>
+                        <option value="RC4">RC4</option>
+                        <option value="Rabbit">Rabbit</option>
+                    </select>
+                    <select id="modeSelect">
+                        <option value="CBC">CBC Mode</option>
+                        <option value="CFB">CFB Mode</option>
+                        <option value="CTR">CTR Mode</option>
+                        <option value="OFB">OFB Mode</option>
+                        <option value="ECB">ECB Mode</option>
+                    </select>
+                    <select id="paddingSelect">
+                        <option value="Pkcs7">PKCS7 Padding</option>
+                        <option value="Iso97971">ISO97971</option>
+                        <option value="AnsiX923">ANSI X923</option>
+                        <option value="NoPadding">No Padding</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="decryptBtn" onclick="decryptText()">
+                    🔓 Dešifrovat
+                </button>
+                <button class="secondary" onclick="encryptText()">
+                    🔒 Zašifrovat
+                </button>
+                <button class="warning" onclick="clearAll()">
+                    🗑️ Vymazat vše
+                </button>
+                <button class="secondary" onclick="generateKey()">
+                    🎲 Generovat klíč
+                </button>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="result-container">
+                <div class="result-header">
+                    <label>📄 Výsledek:</label>
+                    <div>
+                        <button class="copy-btn" onclick="copyToClipboard()">📋 Kopírovat</button>
+                        <button class="copy-btn" onclick="saveToFile()">💾 Uložit</button>
+                        <button class="copy-btn" onclick="shareResult()">🔗 Sdílet</button>
+                    </div>
+                </div>
+                <pre id="output">-- zde se zobrazí plaintext --</pre>
+            </div>
+            
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="sidebar">
+            <h2>📊 Statistiky</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDecryptions">0</div>
+                    <div class="stat-label">Dešifrování</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successRate">100%</div>
+                    <div class="stat-label">Úspěšnost</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgTime">0ms</div>
+                    <div class="stat-label">Avg. čas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="keysUsed">0</div>
+                    <div class="stat-label">Klíčů použito</div>
+                </div>
+            </div>
+            
+            <h2>📚 Historie dešifrování</h2>
+            <div class="button-group">
+                <button class="secondary" onclick="exportHistory()" style="flex: 1;">
+                    📤 Export
+                </button>
+                <button class="warning" onclick="clearHistory()" style="flex: 1;">
+                    🗑️ Vymazat
+                </button>
+            </div>
+            <div id="historyContainer">
+                <p style="text-align: center; color: #666; padding: 20px;">Žádná historie</p>
+            </div>
+            
+            <h2>🛠️ Nástroje</h2>
+            <div class="button-group" style="flex-direction: column;">
+                <button class="secondary" onclick="analyzeText()">
+                    🔍 Analyzovat text
+                </button>
+                <button class="secondary" onclick="bruteForceMode()">
+                    💪 Brute Force
+                </button>
+                <button class="secondary" onclick="hashText()">
+                    #️⃣ Hash text
+                </button>
+                <button class="secondary" onclick="base64Tools()">
+                    🔤 Base64 nástroje
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Advanced CryptoJS Decryptor - Kompletní JavaScript
+// Globální proměnné
+let decryptHistory = [];
+let statistics = {
+    totalDecryptions: 0,
+    successfulDecryptions: 0,
+    failedDecryptions: 0,
+    averageTime: 0,
+    uniqueKeys: new Set()
+};
+const MAX_HISTORY = 20;
+
+// Inicializace
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    setupEventListeners();
+    loadDataFromStorage();
+    updateStatistics();
+});
+
+function initializeApp() {
+    setupDragAndDrop();
+    
+    const savedTheme = localStorage.getItem('cryptoTheme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    document.getElementById('cipherInput').focus();
+}
+
+function setupEventListeners() {
+    document.getElementById('keyInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') decryptText();
+    });
+    
+    document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    document.getElementById('cipherInput').addEventListener('input', autoDetectAlgorithm);
+}
+
+function setupDragAndDrop() {
+    const dropZone = document.getElementById('dropZone');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+    
+    dropZone.addEventListener('drop', handleDrop, false);
+    dropZone.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.txt,.json,.enc';
+        input.onchange = (e) => handleFileSelect(e.target.files[0]);
+        input.click();
+    });
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleDrop(e) {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileSelect(files[0]);
+    }
+}
+
+function handleFileSelect(file) {
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('cipherInput').value = e.target.result;
+        showStatus(`Soubor "${file.name}" byl načten`, 'success');
+        autoDetectAlgorithm();
+    };
+    reader.readAsText(file);
+}
+
+function togglePasswordVisibility() {
+    const keyInput = document.getElementById('keyInput');
+    const toggleBtn = document.getElementById('togglePassword');
+    
+    if (keyInput.type === 'password') {
+        keyInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+    } else {
+        keyInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    localStorage.setItem('cryptoTheme', isDarkMode ? 'dark' : 'light');
+}
+
+function autoDetectAlgorithm() {
+    const cipher = document.getElementById('cipherInput').value.trim();
+    const algorithmSelect = document.getElementById('algorithmSelect');
+    
+    if (cipher.length > 0) {
+        if (cipher.includes('==') || cipher.includes('=')) {
+            showStatus('Detekován Base64 formát', 'warning');
+        }
+        
+        if (cipher.length % 16 === 0 && cipher.length > 32) {
+            algorithmSelect.value = 'AES';
+        } else if (cipher.length % 8 === 0) {
+            algorithmSelect.value = 'DES';
+        }
+    }
+}
+
+async function decryptText() {
+    const startTime = performance.now();
+    const cipher = document.getElementById('cipherInput').value.trim();
+    const key = document.getElementById('keyInput').value;
+    const algorithm = document.getElementById('algorithmSelect').value;
+    const mode = document.getElementById('modeSelect').value;
+    const padding = document.getElementById('paddingSelect').value;
+    const output = document.getElementById('output');
+    
+    if (!cipher || !key) {
+        showStatus('Vyplňte obě pole', 'error');
+        return;
+    }
+    
+    showProgress(true);
+    
+    try {
+        let result;
+        const config = {
+            mode: CryptoJS.mode[mode],
+            padding: CryptoJS.pad[padding]
+        };
+        
+        updateProgress(30);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        switch (algorithm) {
+            case 'AES':
+                result = CryptoJS.AES.decrypt(cipher, key, config);
+                break;
+            case 'DES':
+                result = CryptoJS.DES.decrypt(cipher, key, config);
+                break;
+            case 'TripleDES':
+                result = CryptoJS.TripleDES.decrypt(cipher, key, config);
+                break;
+            case 'RC4':
+                result = CryptoJS.RC4.decrypt(cipher, key);
+                break;
+            case 'Rabbit':
+                result = CryptoJS.Rabbit.decrypt(cipher, key);
+                break;
+            default:
+                result = CryptoJS.AES.decrypt(cipher, key);
+        }
+        
+        updateProgress(70);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const plaintext = result.toString(CryptoJS.enc.Utf8);
+        
+        if (!plaintext) {
+            throw new Error('Nesprávný klíč nebo formát dat');
+        }
+        
+        updateProgress(100);
+        
+        output.textContent = plaintext;
+        
+        const endTime = performance.now();
+        const processingTime = Math.round(endTime - startTime);
+        
+        statistics.totalDecryptions++;
+        statistics.successfulDecryptions++;
+        statistics.uniqueKeys.add(key);
+        updateAverageTime(processingTime);
+        
+        addToHistory(cipher, key, plaintext, algorithm, processingTime);
+        updateStatistics();
+        
+        showStatus(`Dešifrování proběhlo úspěšně (${processingTime}ms)`, 'success');
+        
+    } catch (e) {
+        statistics.totalDecryptions++;
+        statistics.failedDecryptions++;
+        updateStatistics();
+        
+        output.textContent = 'Chyba dešifrování: ' + e.message;
+        showStatus('Chyba: ' + e.message, 'error');
+    } finally {
+        showProgress(false);
+    }
+}
+
+async function encryptText() {
+    const text = document.getElementById('output').textContent;
+    const key = document.getElementById('keyInput').value;
+    const algorithm = document.getElementById('algorithmSelect').value;
+    
+    if (text === '-- zde se zobrazí plaintext --' || !text || !key) {
+        showStatus('Nejdříve dešifrujte text nebo zadejte vlastní', 'error');
+        return;
+    }
+    
+    try {
+        let encrypted;
+        
+        switch (algorithm) {
+            case 'AES':
+                encrypted = CryptoJS.AES.encrypt(text, key);
+                break;
+            case 'DES':
+                encrypted = CryptoJS.DES.encrypt(text, key);
+                break;
+            case 'TripleDES':
+                encrypted = CryptoJS.TripleDES.encrypt(text, key);
+                break;
+            case 'RC4':
+                encrypted = CryptoJS.RC4.encrypt(text, key);
+                break;
+            case 'Rabbit':
+                encrypted = CryptoJS.Rabbit.encrypt(text, key);
+                break;
+            default:
+                encrypted = CryptoJS.AES.encrypt(text, key);
+        }
+        
+        document.getElementById('cipherInput').value = encrypted.toString();
+        showStatus('Text byl zašifrován', 'success');
+        
+    } catch (e) {
+        showStatus('Chyba při šifrování: ' + e.message, 'error');
+    }
+}
+
+function generateKey() {
+    const length = 32;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let key = '';
+    
+    for (let i = 0; i < length; i++) {
+        key += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    document.getElementById('keyInput').value = key;
+    showStatus('Nový klíč byl vygenerován', 'success');
+}
+
+function clearAll() {
+    document.getElementById('cipherInput').value = '';
+    document.getElementById('keyInput').value = '';
+    document.getElementById('output').textContent = '-- zde se zobrazí plaintext --';
+    showStatus('Všechna pole byla vymazána', 'success');
+}
+
+function copyToClipboard() {
+    const output = document.getElementById('output').textContent;
+    if (output === '-- zde se zobrazí plaintext --') {
+        showStatus('Žádný obsah ke kopírování', 'error');
+        return;
+    }
+    
+    navigator.clipboard.writeText(output)
+        .then(() => showStatus('Zkopírováno do schránky', 'success'))
+        .catch(err => showStatus('Chyba při kopírování: ' + err, 'error'));
+}
+
+function saveToFile() {
+    const output = document.getElementById('output').textContent;
+    if (output === '-- zde se zobrazí plaintext --') {
+        showStatus('Žádný obsah k uložení', 'error');
+        return;
+    }
+    
+    const blob = new Blob([output], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `decrypted_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showStatus('Soubor byl uložen', 'success');
+}
+
+function shareResult() {
+    const output = document.getElementById('output').textContent;
+    if (output === '-- zde se zobrazí plaintext --') {
+        showStatus('Žádný obsah ke sdílení', 'error');
+        return;
+    }
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Dešifrovaný text',
+            text: output
+        }).then(() => {
+            showStatus('Obsah byl sdílen', 'success');
+        }).catch(() => {
+            showStatus('Sdílení bylo zrušeno', 'warning');
+        });
+    } else {
+        copyToClipboard();
+    }
+}
+
+function showProgress(show) {
+    const container = document.getElementById('progressContainer');
+    container.style.display = show ? 'block' : 'none';
+    if (!show) {
+        updateProgress(0);
+    }
+}
+
+function updateProgress(percent) {
+    const bar = document.getElementById('progressBar');
+    bar.style.width = percent + '%';
+}
+
+function showStatus(message, type) {
+    const status = document.getElementById('status');
+    status.innerHTML = `
+        ${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'} 
+        ${message}
+    `;
+    status.className = 'status ' + type;
+    
+    setTimeout(() => {
+        status.style.display = 'none';
+    }, 4000);
+}
+
+function addToHistory(cipher, key, result, algorithm, time) {
+    const historyItem = {
+        cipher: cipher.substring(0, 50) + (cipher.length > 50 ? '...' : ''),
+        key: key,
+        result: result.substring(0, 100) + (result.length > 100 ? '...' : ''),
+        algorithm: algorithm,
+        time: time,
+        timestamp: new Date().toLocaleString('cs-CZ')
+    };
+    
+    decryptHistory.unshift(historyItem);
+    if (decryptHistory.length > MAX_HISTORY) {
+        decryptHistory.pop();
+    }
+    
+    renderHistory();
+    saveDataToStorage();
+}
+
+function renderHistory() {
+    const container = document.getElementById('historyContainer');
+    
+    if (decryptHistory.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Žádná historie</p>';
+        return;
+    }
+    
+    container.innerHTML = decryptHistory.map((item, index) => `
+        <div class="history-item" onclick="loadFromHistory(${index})">
+            <div class="history-meta">
+                🕒 ${item.timestamp} | ⚡ ${item.time}ms | 🔧 ${item.algorithm}
+            </div>
+            <div class="history-preview">
+                🔑 ${item.key}<br>
+                📄 ${item.result}
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadFromHistory(index) {
+    const item = decryptHistory[index];
+    document.getElementById('keyInput').value = item.key;
+    document.getElementById('output').textContent = item.result;
+    showStatus('Historie byla načtena', 'success');
+}
+
+function clearHistory() {
+    if (confirm('Opravdu chcete vymazat celou historii?')) {
+        decryptHistory = [];
+        renderHistory();
+        saveDataToStorage();
+        showStatus('Historie byla vymazána', 'success');
+    }
+}
+
+function exportHistory() {
+    if (decryptHistory.length === 0) {
+        showStatus('Žádná historie k exportu', 'error');
+        return;
+    }
+    
+    const data = {
+        exported: new Date().toISOString(),
+        version: '2.0',
+        history: decryptHistory,
+        statistics: {
+            ...statistics,
+            uniqueKeys: Array.from(statistics.uniqueKeys)
+        }
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crypto_history_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showStatus('Historie byla exportována', 'success');
+}
+
+function updateStatistics() {
+    document.getElementById('totalDecryptions').textContent = statistics.totalDecryptions;
+    
+    const successRate = statistics.totalDecryptions > 0 
+        ? Math.round((statistics.successfulDecryptions / statistics.totalDecryptions) * 100)
+        : 100;
+    document.getElementById('successRate').textContent = successRate + '%';
+    
+    document.getElementById('avgTime').textContent = Math.round(statistics.averageTime) + 'ms';
+    document.getElementById('keysUsed').textContent = statistics.uniqueKeys.size;
+}
+
+function updateAverageTime(newTime) {
+    const total = statistics.averageTime * (statistics.totalDecryptions - 1) + newTime;
+    statistics.averageTime = total / statistics.totalDecryptions;
+}
+
+function analyzeText() {
+    const text = document.getElementById('cipherInput').value.trim();
+    if (!text) {
+        showStatus('Nejdříve vložte text k analýze', 'error');
+        return;
+    }
+    
+    const analysis = {
+        length: text.length,
+        isBase64: /^[A-Za-z0-9+/]*={0,2}$/.test(text),
+        hasSpecialChars: /[^A-Za-z0-9+/=]/.test(text),
+        entropy: calculateEntropy(text),
+        possibleFormats: []
+    };
+    
+    if (analysis.isBase64) analysis.possibleFormats.push('Base64');
+    if (text.length % 16 === 0) analysis.possibleFormats.push('AES Block');
+    if (text.length % 8 === 0) analysis.possibleFormats.push('DES Block');
+    
+    alert(`🔍 Analýza textu:
+📏 Délka: ${analysis.length} znaků
+🔤 Base64: ${analysis.isBase64 ? 'Ano' : 'Ne'}
+⚡ Speciální znaky: ${analysis.hasSpecialChars ? 'Ano' : 'Ne'}
+📊 Entropie: ${analysis.entropy.toFixed(2)}
+🎯 Možné formáty: ${analysis.possibleFormats.join(', ') || 'Neznámý'}`);
+}
+
+function calculateEntropy(str) {
+    const freq = {};
+    str.split('').forEach(char => freq[char] = (freq[char] || 0) + 1);
+    
+    return Object.values(freq).reduce((entropy, count) => {
+        const p = count / str.length;
+        return entropy - p * Math.log2(p);
+    }, 0);
+}
+
+function bruteForceMode() {
+    const cipher = document.getElementById('cipherInput').value.trim();
+    if (!cipher) {
+        showStatus('Nejdříve vložte šifrovaný text', 'error');
+        return;
+    }
+    
+    const commonPasswords = [
+        'password', '123456', 'admin', 'qwerty', 'letmein',
+        'welcome', 'monkey', '1234567890', 'password123',
+        'admin123', 'root', 'toor', 'pass', 'test', 'user',
+        '123', '1234', '12345', 'abc123', 'password1',
+        'hello', 'world', 'secret', 'key', 'master'
+    ];
+    
+    let found = false;
+    showStatus('💪 Spouštím brute force...', 'warning');
+    
+    setTimeout(() => {
+        for (const pwd of commonPasswords) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(cipher, pwd);
+                const plaintext = bytes.toString(CryptoJS.enc.Utf8);
+                
+                if (plaintext && plaintext.length > 0 && /^[\x20-\x7E\s]*$/.test(plaintext)) {
+                    document.getElementById('keyInput').value = pwd;
+                    document.getElementById('output').textContent = plaintext;
+                    showStatus(`🎯 Heslo nalezeno: "${pwd}"`, 'success');
+                    found = true;
+                    break;
+                }
+            } catch (e) {
+                // Pokračuj s dalším heslem
+            }
+        }
+        
+        if (!found) {
+            showStatus('❌ Heslo nenalezeno v běžných heslech', 'error');
+        }
+    }, 100);
+}
+
+function hashText() {
+    const text = document.getElementById('output').textContent;
+    if (text === '-- zde se zobrazí plaintext --' || !text) {
+        showStatus('Nejdříve dešifrujte nějaký text', 'error');
+        return;
+    }
+    
+    const hashes = {
+        'MD5': CryptoJS.MD5(text).toString(),
+        'SHA1': CryptoJS.SHA1(text).toString(),
+        'SHA256': CryptoJS.SHA256(text).toString(),
+        'SHA512': CryptoJS.SHA512(text).toString()
+    };
+    
+    let hashOutput = '🔐 Hash hodnoty:\n\n';
+    Object.entries(hashes).forEach(([type, hash]) => {
+        hashOutput += `${type}: ${hash}\n\n`;
+    });
+    
+    document.getElementById('output').textContent = hashOutput;
+    showStatus('Hash hodnoty byly vygenerovány', 'success');
+}
+
+function base64Tools() {
+    const text = document.getElementById('cipherInput').value.trim();
+    if (!text) {
+        showStatus('Nejdříve vložte text', 'error');
+        return;
+    }
+    
+    try {
+        let result;
+        
+        if (/^[A-Za-z0-9+/]*={0,2}$/.test(text)) {
+            result = '🔤 Base64 Decode:\n' + atob(text);
+        } else {
+            result = '🔤 Base64 Encode:\n' + btoa(text);
+        }
+        
+        document.getElementById('output').textContent = result;
+        showStatus('Base64 operace dokončena', 'success');
+        
+    } catch (e) {
+        showStatus('Chyba při Base64 operaci: ' + e.message, 'error');
+    }
+}
+
+function saveDataToStorage() {
+    try {
+        const data = {
+            history: decryptHistory,
+            statistics: {
+                ...statistics,
+                uniqueKeys: Array.from(statistics.uniqueKeys)
+            }
+        };
+        
+        const encrypted = CryptoJS.AES.encrypt(
+            JSON.stringify(data),
+            'warp-10-storage-key'
+        ).toString();
+        
+        localStorage.setItem('cryptoAdvancedData', encrypted);
+    } catch (e) {
+        console.error('Chyba při ukládání:', e);
+    }
+}
+
+function loadDataFromStorage() {
+    try {
+        const encrypted = localStorage.getItem('cryptoAdvancedData');
+        if (encrypted) {
+            const bytes = CryptoJS.AES.decrypt(encrypted, 'warp-10-storage-key');
+            const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+            
+            if (decrypted) {
+                const data = JSON.parse(decrypted);
+                decryptHistory = data.history || [];
+                
+                if (data.statistics) {
+                    statistics = {
+                        ...data.statistics,
+                        uniqueKeys: new Set(data.statistics.uniqueKeys || [])
+                    };
+                }
+                
+                renderHistory();
+            }
+        }
+    } catch (e) {
+        console.error('Chyba při načítání:', e);
+        decryptHistory = [];
+        statistics = {
+            totalDecryptions: 0,
+            successfulDecryptions: 0,
+            failedDecryptions: 0,
+            averageTime: 0,
+            uniqueKeys: new Set()
+        };
+    }
+}
+
+// Klávesové zkratky
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+            case 'Enter':
+                e.preventDefault();
+                decryptText();
+                break;
+            case 'd':
+                e.preventDefault();
+                clearAll();
+                break;
+            case 's':
+                e.preventDefault();
+                saveToFile();
+                break;
+            case 'g':
+                e.preventDefault();
+                generateKey();
+                break;
+        }
+    }
+});
+
+// Auto-save input
+let autoSaveTimeout;
+document.getElementById('cipherInput').addEventListener('input', () => {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        const cipher = document.getElementById('cipherInput').value;
+        if (cipher) {
+            localStorage.setItem('tempCipher', cipher);
+        }
+    }, 1000);
+});
+
+// Load temp data on startup
+const tempCipher = localStorage.getItem('tempCipher');
+if (tempCipher) {
+    document.getElementById('cipherInput').value = tempCipher;
+}
+
+// Pokročilé funkce
+function importHistory() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.history && Array.isArray(data.history)) {
+                        decryptHistory = data.history;
+                        if (data.statistics) {
+                            statistics = {
+                                ...data.statistics,
+                                uniqueKeys: new Set(data.statistics.uniqueKeys || [])
+                            };
+                        }
+                        renderHistory();
+                        updateStatistics();
+                        saveDataToStorage();
+                        showStatus('Historie byla importována', 'success');
+                    }
+                } catch (err) {
+                    showStatus('Chyba při importu: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    input.click();
+}
+    </script>  
+    </body>
+</html>
