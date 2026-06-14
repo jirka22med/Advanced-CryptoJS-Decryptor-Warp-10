@@ -506,6 +506,194 @@
             color: #666;
             font-size: 0.9rem;
         }
+        /* ============================================ */
+        /* 🗂️ TABULKA DEŠIFROVANÝCH HESEL              */
+        /* ============================================ */
+
+        #passwordTableOutput {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .pw-table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pw-table-info {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .pw-table-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .pw-search {
+            padding: 7px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 180px;
+            transition: border-color 0.2s;
+            background: var(--card-color);
+            color: var(--text-color);
+        }
+
+        .pw-search:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .pw-btn-small {
+            padding: 7px 12px;
+            font-size: 0.82rem;
+            min-width: auto;
+            flex: none;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .pw-btn-small:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .pw-btn-toggle-all { background: var(--secondary-color); }
+        .pw-btn-raw        { background: #9e9e9e; }
+
+        .pw-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+        }
+
+        .pw-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        .pw-table thead {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .pw-table th {
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .pw-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s;
+        }
+
+        .pw-table tbody tr:last-child { border-bottom: none; }
+
+        .pw-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.06);
+        }
+
+        .pw-table td {
+            padding: 10px 14px;
+            vertical-align: middle;
+            color: var(--text-color);
+        }
+
+        .pw-table td:first-child {
+            font-weight: 600;
+            color: #888;
+            font-size: 0.8rem;
+            width: 36px;
+            text-align: center;
+        }
+
+        .pw-service-badge {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.12);
+            color: #5a6fd6;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            max-width: 170px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dark-mode .pw-service-badge {
+            background: rgba(102, 126, 234, 0.25);
+            color: #a0aff0;
+        }
+
+        .pw-user-text {
+            font-family: 'Consolas', monospace;
+            font-size: 0.87rem;
+        }
+
+        .pw-password-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pw-password-text {
+            font-family: 'Consolas', monospace;
+            font-size: 0.87rem;
+            letter-spacing: 2px;
+            min-width: 80px;
+        }
+
+        .pw-password-text.visible { letter-spacing: normal; }
+
+        .pw-icon-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            padding: 4px 8px;
+            min-width: auto;
+            flex: none;
+            color: var(--text-color);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .pw-icon-btn:hover {
+            background: rgba(33, 150, 243, 0.1);
+            border-color: var(--secondary-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pw-icon-btn.copied {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .dark-mode .pw-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
@@ -595,6 +783,31 @@
                     </div>
                 </div>
                 <pre id="output">-- zde se zobrazí plaintext --</pre>
+                
+                <!-- 🗂️ TABULKA HESEL - zobrazí se automaticky při dešifrování hesel -->
+                <div id="passwordTableOutput">
+                    <div class="pw-table-header">
+                        <span class="pw-table-info" id="pwTableCount"></span>
+                        <div class="pw-table-controls">
+                            <input class="pw-search" type="text" id="pwSearch" placeholder="🔍 Hledat..." oninput="filterPasswordTable(this.value)">
+                            <button class="pw-btn-small pw-btn-toggle-all" onclick="toggleAllPasswords()">👁 Zobrazit vše</button>
+                            <button class="pw-btn-small pw-btn-raw" onclick="switchToRawView()">📄 Raw JSON</button>
+                        </div>
+                    </div>
+                    <div class="pw-table-wrap">
+                        <table class="pw-table" id="pwTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>🌐 Služba</th>
+                                    <th>👤 Uživatel</th>
+                                    <th>🔑 Heslo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pwTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
             <div id="status" class="status"></div>
@@ -836,7 +1049,12 @@ async function decryptText() {
         
         updateProgress(100);
         
-        output.textContent = plaintext;
+        // 🗂️ Pokus o vykreslení jako tabulka hesel (JSON pole)
+        const rendered = tryRenderPasswordTable(plaintext);
+        if (!rendered) {
+            output.textContent = plaintext;
+            output.style.display = 'block';
+        }
         
         const endTime = performance.now();
         const processingTime = Math.round(endTime - startTime);
@@ -921,6 +1139,8 @@ function clearAll() {
     document.getElementById('cipherInput').value = '';
     document.getElementById('keyInput').value = '';
     document.getElementById('output').textContent = '-- zde se zobrazí plaintext --';
+    document.getElementById('output').style.display = 'block';
+    document.getElementById('passwordTableOutput').style.display = 'none';
     showStatus('Všechna pole byla vymazána', 'success');
 }
 
@@ -1326,6 +1546,183 @@ document.getElementById('cipherInput').addEventListener('input', () => {
 const tempCipher = localStorage.getItem('tempCipher');
 if (tempCipher) {
     document.getElementById('cipherInput').value = tempCipher;
+}
+
+// ============================================
+// 🗂️ TABULKA DEŠIFROVANÝCH HESEL
+// ============================================
+
+// Uchováváme dešifrovaná hesla pro filtrování
+let _pwData = [];
+let _allPasswordsVisible = false;
+
+/**
+ * Pokusí se parsovat plaintext jako JSON pole hesel.
+ * Pokud se to podaří a pole má správnou strukturu, vykreslí tabulku.
+ * Vrací true pokud tabulka byla vykreslena, false jinak.
+ */
+function tryRenderPasswordTable(plaintext) {
+    try {
+        // Najdeme první [ pro případ extra textu na začátku
+        const jsonStart = plaintext.indexOf('[');
+        if (jsonStart === -1) return false;
+
+        const parsed = JSON.parse(plaintext.substring(jsonStart));
+        
+        if (!Array.isArray(parsed) || parsed.length === 0) return false;
+        
+        // Ověření struktury — musí mít alespoň service nebo username nebo password
+        const firstItem = parsed[0];
+        const hasPasswordStructure = 
+            ('service' in firstItem || 'username' in firstItem || 'password' in firstItem);
+        
+        if (!hasPasswordStructure) return false;
+
+        _pwData = parsed;
+        _allPasswordsVisible = false;
+        renderPasswordTable(parsed);
+        return true;
+
+    } catch (e) {
+        return false; // Není JSON — normální text
+    }
+}
+
+/**
+ * Vykreslí tabulku hesel
+ */
+function renderPasswordTable(data) {
+    const tableOutput = document.getElementById('passwordTableOutput');
+    const rawOutput   = document.getElementById('output');
+    const tbody       = document.getElementById('pwTableBody');
+    const countEl     = document.getElementById('pwTableCount');
+    const searchEl    = document.getElementById('pwSearch');
+
+    // Skryjeme raw pre, zobrazíme tabulku
+    rawOutput.style.display = 'none';
+    tableOutput.style.display = 'block';
+    searchEl.value = '';
+
+    countEl.textContent = `✅ Dešifrováno ${data.length} hesel`;
+
+    tbody.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    data.forEach((item, i) => {
+        const service  = escapeHtml(item.service  || '—');
+        const username = escapeHtml(item.username || item.email || item.user || '—');
+        const password = escapeHtml(item.password || item.pass  || item.pwd  || '—');
+
+        const tr = document.createElement('tr');
+        tr.dataset.service  = service.toLowerCase();
+        tr.dataset.username = username.toLowerCase();
+        tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td><span class="pw-service-badge" title="${service}">${service}</span></td>
+            <td>
+                <span class="pw-user-text">${username}</span>
+                <button class="pw-icon-btn" onclick="copyCell(this, '${username.replace(/'/g, "\'")}')" title="Kopírovat uživatele">📋</button>
+            </td>
+            <td>
+                <div class="pw-password-cell">
+                    <span class="pw-password-text" data-pwd="${password}">••••••••</span>
+                    <button class="pw-icon-btn" onclick="togglePwdVisibility(this)" title="Zobrazit/Skrýt heslo">👁</button>
+                    <button class="pw-icon-btn" onclick="copyCell(this, '${password.replace(/'/g, "\'")}')" title="Kopírovat heslo">📋</button>
+                </div>
+            </td>
+        `;
+        fragment.appendChild(tr);
+    });
+
+    tbody.appendChild(fragment);
+}
+
+/** Přepnutí viditelnosti jednoho hesla */
+function togglePwdVisibility(btn) {
+    const span = btn.parentElement.querySelector('.pw-password-text');
+    if (span.classList.contains('visible')) {
+        span.textContent = '••••••••';
+        span.classList.remove('visible');
+        btn.textContent = '👁';
+    } else {
+        span.textContent = span.dataset.pwd;
+        span.classList.add('visible');
+        btn.textContent = '🙈';
+    }
+}
+
+/** Zobrazit/skrýt všechna hesla najednou */
+function toggleAllPasswords() {
+    _allPasswordsVisible = !_allPasswordsVisible;
+    const spans = document.querySelectorAll('.pw-password-text');
+    const toggleBtns = document.querySelectorAll('.pw-password-cell .pw-icon-btn:nth-child(2)');
+    
+    spans.forEach((span, i) => {
+        if (_allPasswordsVisible) {
+            span.textContent = span.dataset.pwd;
+            span.classList.add('visible');
+            if (toggleBtns[i]) toggleBtns[i].textContent = '🙈';
+        } else {
+            span.textContent = '••••••••';
+            span.classList.remove('visible');
+            if (toggleBtns[i]) toggleBtns[i].textContent = '👁';
+        }
+    });
+
+    document.querySelector('.pw-btn-toggle-all').textContent = 
+        _allPasswordsVisible ? '🙈 Skrýt vše' : '👁 Zobrazit vše';
+}
+
+/** Kopírování hodnoty buňky s vizuální zpětnou vazbou */
+async function copyCell(btn, value) {
+    try {
+        await navigator.clipboard.writeText(value);
+        const orig = btn.textContent;
+        btn.textContent = '✅';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = orig;
+            btn.classList.remove('copied');
+        }, 1500);
+    } catch(e) {
+        showStatus('Kopírování selhalo', 'error');
+    }
+}
+
+/** Filtrování tabulky podle hledaného textu */
+function filterPasswordTable(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('#pwTableBody tr');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const match = !q || 
+            row.dataset.service.includes(q) || 
+            row.dataset.username.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    document.getElementById('pwTableCount').textContent = 
+        q ? `🔍 ${visible} z ${_pwData.length} hesel` : `✅ ${_pwData.length} hesel`;
+}
+
+/** Přepnutí zpět na raw JSON pohled */
+function switchToRawView() {
+    document.getElementById('passwordTableOutput').style.display = 'none';
+    const raw = document.getElementById('output');
+    raw.style.display = 'block';
+    raw.textContent = JSON.stringify(_pwData, null, 2);
+}
+
+/** HTML escapování pro bezpečné vložení do DOM */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // Pokročilé funkce
