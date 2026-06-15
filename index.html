@@ -965,13 +965,36 @@ function handleDrop(e) {
     }
 }
 
+/**
+ * 🔍 Extrakce čistého Base64 řetězce z exportního souboru Hvězdné flotily
+ * Odstraní dekorativní komentáře a vrátí pouze šifrovaný řetězec
+ * Pokud žádný CryptoJS fingerprint nenajde, vrátí původní text beze změny
+ */
+function extractEncryptedData(text) {
+    // CryptoJS AES vždy začíná 'U2FsdGVkX1' (= "Salted__" zakódované v Base64)
+    const match = text.match(/U2FsdGVkX1[A-Za-z0-9+\/=]+/);
+    if (match) {
+        return match[0].trim();
+    }
+    // Žádný fingerprint → vrátíme původní text, ať se uživatel rozhodne
+    return text.trim();
+}
+
 function handleFileSelect(file) {
     if (!file) return;
     
     const reader = new FileReader();
     reader.onload = (e) => {
-        document.getElementById('cipherInput').value = e.target.result;
-        showStatus(`Soubor "${file.name}" byl načten`, 'success');
+        const raw = e.target.result;
+        const extracted = extractEncryptedData(raw);
+        document.getElementById('cipherInput').value = extracted;
+
+        // Informuj uživatele zda byl filtrován exportní soubor flotily
+        if (extracted !== raw.trim()) {
+            showStatus(`✅ Soubor "${file.name}" načten — komentáře odstraněny, šifrovaná data připravena`, 'success');
+        } else {
+            showStatus(`Soubor "${file.name}" byl načten`, 'success');
+        }
         autoDetectAlgorithm();
     };
     reader.readAsText(file);
@@ -1019,7 +1042,14 @@ function autoDetectAlgorithm() {
 
 async function decryptText() {
     const startTime = performance.now();
-    const cipher = document.getElementById('cipherInput').value.trim();
+    // 🔍 Filtr: extrahuj čistý Base64 i kdyby uživatel vložil celý exportní soubor
+    const rawInput = document.getElementById('cipherInput').value.trim();
+    const cipher = extractEncryptedData(rawInput);
+
+    // Pokud se lišíme, aktualizuj textarea ať uživatel vidí co se dešifruje
+    if (cipher !== rawInput) {
+        document.getElementById('cipherInput').value = cipher;
+    }
     const key = document.getElementById('keyInput').value;
     const algorithm = document.getElementById('algorithmSelect').value;
     const mode = document.getElementById('modeSelect').value;
