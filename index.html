@@ -999,17 +999,21 @@ function toggleTheme() {
 function autoDetectAlgorithm() {
     const cipher = document.getElementById('cipherInput').value.trim();
     const algorithmSelect = document.getElementById('algorithmSelect');
-    
-    if (cipher.length > 0) {
-        if (cipher.includes('==') || cipher.includes('=')) {
-            showStatus('Detekován Base64 formát', 'warning');
-        }
-        
-        if (cipher.length % 16 === 0 && cipher.length > 32) {
-            algorithmSelect.value = 'AES';
-        } else if (cipher.length % 8 === 0) {
-            algorithmSelect.value = 'DES';
-        }
+
+    if (!cipher) return;
+
+    // ✅ Spolehlivá detekce CryptoJS AES exportu
+    // Všechny CryptoJS AES řetězce začínají 'U2FsdGVkX1' (= "Salted__" v Base64)
+    if (cipher.startsWith('U2FsdGVkX1')) {
+        algorithmSelect.value = 'AES';
+        showStatus('Detekován CryptoJS AES formát ✅', 'success');
+        return;
+    }
+
+    // Ostatní Base64 — jen informace, selector NESAHÁME
+    // Uživatel ví co vkládá a sám vybere algoritmus
+    if (/^[A-Za-z0-9+/]+=*$/.test(cipher)) {
+        showStatus('Detekován Base64 formát — zkontroluj algoritmus', 'warning');
     }
 }
 
